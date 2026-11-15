@@ -79,7 +79,7 @@ select,input[type=number],input[type=text]{width:100%;border:1px solid var(--lin
 <div class="field full"><label for="product">PRODUCT / SPECIFICATION</label><select id="product"></select></div>
 <div class="field"><label for="quantity">QUANTITY</label><input id="quantity" type="number" min="1" step="1" value="100"></div>
 <div class="field"><label for="rate">PRICE BASIS</label><input id="rate" type="text" value="—" readonly></div>
-<div class="field full hidden" id="areaField"><label for="area">AREA (SQUARE FEET)</label><input id="area" type="number" min="0.1" step="0.1" value="1"></div>
+<div class="field full hidden" id="areaField"><label for="area">AREA (SQUARE FEET)</label><input id="area" type="number" min="0.1" step="0.1" value="1"></div><div class="field full hidden" id="dimensionsField"><label>BOARD DIMENSIONS (FEET)</label><div class="formgrid"><div class="field"><label for="width">WIDTH (FT)</label><input id="width" type="number" min="0.1" step="0.1" value="4"></div><div class="field"><label for="height">HEIGHT (FT)</label><input id="height" type="number" min="0.1" step="0.1" value="2"></div></div><div class="small" id="dimensionArea" style="margin-top:6px">Area: 8 sq. ft.</div></div>
 </div>
 <label class="checkrow"><input type="checkbox" id="gst" checked> Add 18% GST to quotation</label>
 <label class="checkrow"><input type="checkbox" id="design"> Include designing charges</label>
@@ -145,6 +145,7 @@ extraTables:[{title:"Brochure · 300 GSM",qty:[1000,2000,3000,5000,10000],produc
 {title:"Letterheads & Envelopes",qty:[1000,2000,3000,5000,10000],products:[
 {name:"A4 Letterheads",prices:[7.5,6.25,5,4.37,3.75]},{name:"10 × 4 Envelope",prices:[15.62,10,8.75,7.5,6.25]},{name:"A4 Envelope",prices:[20,12.5,10,8.75,7.5]}]}]},
 {id:"fridge",name:"Promotional Fridge Branding",basis:"area",pricingMode:"area",qty:[],products:[{name:"Premium Vinyl Sticker Branding",unitPrice:200}],notes:["Rate: ₹200 per square foot.","Any size or model; premium vinyl sticker; customized high-quality printing and finishing.","Designing charges extra; 18% GST."]},
+{id:"wpc",name:"WPC Foam Board Signage",basis:"area",pricingMode:"area",qty:[],products:[{name:"6mm WPC Foam Board Signage",unitPrice:200}],notes:["Customer rate: ₹200 per square foot.","Board thickness: 6mm WPC foam board.","Enter finished width and height in feet; area and printing total calculate automatically.","Designing, installation and transportation are extra where applicable; 18% GST."]},
 {id:"letterhead",name:"Letterheads & Envelopes",basis:"order",pricingMode:"fixed",qty:[50,100,200,500,1000],products:[
 {name:"Letterhead · Executive Bond Paper",prices:[600,1000,1800,3500,6000]},
 {name:"Letterhead · Natural Evolution Paper",prices:[700,1200,2000,3700,6300]},
@@ -207,8 +208,10 @@ $("category").value=active;loadProducts();
 function loadProducts(){
 const d=data.find(x=>x.id===$("category").value);
 $("product").innerHTML=d.products.map((p,i)=>`<option value="${i}">${p.name}</option>`).join("");
-$("areaField").classList.toggle("hidden",d.basis!=="area");
+$("areaField").classList.toggle("hidden",d.basis!=="area" || d.id==="wpc");
+$("dimensionsField").classList.toggle("hidden",d.id!=="wpc");
 $("quantity").disabled=d.basis==="area";
+if(d.id==="wpc"){ $("width").value=4; $("height").value=2; updateDimensionArea(); }
 const first=d.products[0];
 $("quantity").value=d.basis==="area"?1:(first.total?first.customQty[0]:(d.qty[0]||1));
 calculate();
@@ -222,9 +225,10 @@ calculate();
 }
 function getPrice(d,p,q){
 if(d.basis==="area"){
-const area=Number($("area").value||0);
+const area=d.id==="wpc" ? Number($("width").value||0)*Number($("height").value||0) : Number($("area").value||0);
 if(!(area>0))return null;
-return {base:p.unitPrice*area,basis:`${area} sq. ft. × ${money(p.unitPrice)}/sq. ft.`,quantity:area,unitRate:p.unitPrice};
+const dimensionText=d.id==="wpc" ? `${$("width").value} ft × ${$("height").value} ft = ${fmt(area)} sq. ft.` : `${area} sq. ft.`;
+return {base:p.unitPrice*area,basis:`${dimensionText} × ${money(p.unitPrice)}/sq. ft.`,quantity:area,unitRate:p.unitPrice,dimensionText};
 }
 if(!Number.isInteger(q)||q<=0)return null;
 
@@ -255,6 +259,7 @@ const q=Number($("quantity").value||0);$("rate").value=d.basis==="area"?"Per sq.
 const priced=getPrice(d,p,q);
 if(priced && d.pricingMode==="slab" && !p.total)$("rate").value=money(priced.unitRate)+" / piece · "+priced.slab+" qty break";
 if(priced && d.basis==="area")$("rate").value=money(p.unitPrice)+" / sq. ft.";
+if(d.id==="wpc")$("dimensionArea").textContent=`Area: ${priced?fmt(priced.quantity):"—"} sq. ft.`;
 if(priced && p.total)$("rate").value="Fixed package total";
 if(!priced){$("total").textContent="—";$("breakdown").innerHTML=`<div>No quote calculated for this quantity.</div><div>Listed quantities: ${(p.total?p.customQty:d.qty).map(fmt).join(", ")}</div>`;$("calcTip").textContent=d.pricingMode==="slab"&&!p.total?"Minimum quantity is "+d.qty[0]+". Enter any quantity above the minimum; the highest reached per-piece break is multiplied by the actual quantity.":p.total?"This product is sold at the fixed package quantities shown.":"The source card gives fixed order totals only at these listed quantities. For an in-between quantity, confirm a manual price rather than inventing a rate.";return;}
 const design=$("design").checked?Number($("designAmount").value||0):0;
@@ -267,10 +272,11 @@ function quoteText(){
 const d=data.find(x=>x.id===$("category").value),p=d.products[Number($("product").value)||0],q=Number($("quantity").value||0),priced=getPrice(d,p,q);
 if(!priced)return "Quantity not available in the listed rate card. Please select a listed tier.";
 const design=$("design").checked?Number($("designAmount").value||0):0,sub=priced.base+design,gst=$("gst").checked?sub*.18:0;
-return `GREYSTUDIO PRINT SERVICES\nQuotation estimate\nCategory: ${d.name}\nProduct: ${p.name}\nQuantity / area: ${d.basis==="area"?q+" sq. ft.":q}\n${priced.basis}\nPrinting: ${money(priced.base)}${design?`\nDesigning: ${money(design)}`:""}\nSubtotal: ${money(sub)}\nGST: ${money(gst)}\nESTIMATED TOTAL: ${money(sub+gst)}\n\nDesigning charges are extra unless included above. Final quote subject to artwork, material and order confirmation.`;
+return `GREYSTUDIO PRINT SERVICES\nQuotation estimate\nCategory: ${d.name}\nProduct: ${p.name}\nQuantity / area: ${d.id==="wpc"?priced.dimensionText:d.basis==="area"?q+" sq. ft.":q}\n${priced.basis}\nPrinting: ${money(priced.base)}${design?`\nDesigning: ${money(design)}`:""}\nSubtotal: ${money(sub)}\nGST: ${money(gst)}\nESTIMATED TOTAL: ${money(sub+gst)}\n\nDesigning charges are extra unless included above. Final quote subject to artwork, material and order confirmation.`;
 }
+function updateDimensionArea(){const a=Number($("width").value||0)*Number($("height").value||0);$("dimensionArea").textContent=`Area: ${a>0?fmt(a):"—"} sq. ft.`;calculate();}
 $("category").onchange=()=>{active=$("category").value;renderTabs();renderList();loadProducts();};
-$("product").onchange=onProductChange;$("quantity").oninput=calculate;$("area").oninput=calculate;$("gst").onchange=calculate;$("design").onchange=()=>{$("designField").classList.toggle("hidden",!$("design").checked);calculate();};$("designAmount").oninput=calculate;
+$("product").onchange=onProductChange;$("quantity").oninput=calculate;$("area").oninput=calculate;$("width").oninput=updateDimensionArea;$("height").oninput=updateDimensionArea;$("gst").onchange=calculate;$("design").onchange=()=>{$("designField").classList.toggle("hidden",!$("design").checked);calculate();};$("designAmount").oninput=calculate;
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(quoteText());$("copy").textContent="Copied ✓";setTimeout(()=>$("copy").textContent="Copy quotation",1600);}catch(e){window.prompt("Copy your quotation:",quoteText());}};
 $("reset").onclick=()=>{$("category").value="business";active="business";$("design").checked=false;$("designAmount").value=0;$("designField").classList.add("hidden");$("gst").checked=true;renderTabs();renderList();loadProducts();};
 $("search").oninput=()=>{const term=$("search").value.toLowerCase();document.querySelectorAll("#tables .section").forEach(s=>{s.classList.toggle("hidden",!s.innerText.toLowerCase().includes(term));});};
