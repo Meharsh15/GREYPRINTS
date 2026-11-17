@@ -5,7 +5,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { SplashScreen } from "@capacitor/splash-screen";
 
 const isNative = Capacitor.isNativePlatform();
-if (isNative) {
+async function initNativeApp() {
   document.documentElement.classList.add("capacitor-native");
   document.body.classList.add("native-app");
 
@@ -111,3 +111,5 @@ if (isNative) {
     App.exitApp();
   });
 }
+
+if (isNative) void initNativeApp();
