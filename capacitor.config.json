@@ -1,0 +1,21 @@
+{
+  "appId": "online.greystudio.greyprints",
+  "appName": "GREYPRINTS",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1800,
+      "backgroundColor": "#101114",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "backgroundColor": "#101114",
+      "style": "LIGHT",
+      "overlaysWebView": false
+    },
+    "Keyboard": {
+      "resize": "native"
+    }
+  }
+}
