@@ -25,7 +25,7 @@ From the repository root:
 
 ```powershell
 npm install
-npm run build
+npm run android:build
 npx cap add android
 npx cap sync android
 npx cap open android
