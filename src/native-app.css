@@ -66,8 +66,8 @@ body.native-app .mobile-quote-bar { display: none !important; }
 }
 body.native-app input,
 body.native-app select,
-body.native-app textarea,
-body.native-app button { font-size: max(16px, 1em); }
+body.native-app textarea { font-size: max(16px, 1em); }
+.native-bottom-nav button { font-size: 11px; }
 body.native-app .product { scroll-margin-top: 16px; }
 body.native-app .quote { scroll-margin-top: 18px; }
 body.native-app .product-image-modal { z-index: 11000; }
