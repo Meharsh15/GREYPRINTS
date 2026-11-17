@@ -80,15 +80,10 @@ if (isNative) {
       document.getElementById("toast") && (document.getElementById("toast").textContent = "Add a product first");
       return;
     }
-    const name = document.getElementById("customerName")?.value?.trim() || "";
-    const phone = document.getElementById("customerPhone")?.value?.trim() || "";
-    const requirements = document.getElementById("requirements")?.value?.trim() || "";
-    const lines = ["GREYSTUDIO PRINT SERVICES", "PRINT & BRANDING REQUEST", ""];
-    if (name) lines.push("Customer: " + name);
-    if (phone) lines.push("Contact: " + phone);
-    lines.push("Please confirm my selected products and pricing in this chat.");
-    if (requirements) lines.push("", "Additional requirements: " + requirements);
-    const url = "https://wa.me/916281256601?text=" + encodeURIComponent(lines.join("\\n"));
+    const message = typeof window.buildMessage === "function"
+      ? window.buildMessage("request")
+      : "GREYSTUDIO PRINT SERVICES\\nPlease confirm my quotation request in this chat.";
+    const url = "https://wa.me/916281256601?text=" + encodeURIComponent(message);
     window.location.href = url;
   }, true);
 
