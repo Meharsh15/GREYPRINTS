@@ -4,14 +4,14 @@
   "private": true,
   "description": "GREYPRINTS Android app built from the existing GreyStudio print catalogue",
   "scripts": {
-    "build": "node scripts/prepare-web.mjs && esbuild src/native-app.js --bundle --format=esm --outfile=www/native-app.bundle.js --platform=browser --target=es2017",
-    "android:add": "npm run build && cap add android",
-    "android:sync": "npm run build && cap sync android",
+    "android:add": "npm run android:build && cap add android",
+    "android:sync": "npm run android:build && cap sync android",
     "android:open": "cap open android",
-    "android:run": "npm run android:sync && cap run android"
+    "android:run": "npm run android:sync && cap run android",
+    "android:build": "node scripts/prepare-web.mjs && esbuild src/native-app.js --bundle --format=esm --outfile=www/native-app.bundle.js --platform=browser --target=es2017"
   },
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
