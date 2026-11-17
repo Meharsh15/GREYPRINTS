@@ -1,0 +1,79 @@
+/* Native Android presentation layer. The website's original styles remain untouched. */
+:root {
+  --native-bottom-height: 66px;
+}
+html { scroll-behavior: smooth; }
+body.native-app {
+  padding-bottom: calc(var(--native-bottom-height) + env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
+}
+body.native-app .top {
+  padding-top: env(safe-area-inset-top);
+}
+body.native-app .mobile-quote-bar { display: none !important; }
+.native-bottom-nav {
+  position: fixed;
+  z-index: 10000;
+  inset-inline: 0;
+  bottom: 0;
+  min-height: var(--native-bottom-height);
+  padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  background: rgba(255,255,255,.97);
+  border-top: 1px solid rgba(20,20,24,.1);
+  box-shadow: 0 -5px 24px rgba(15,18,25,.07);
+  backdrop-filter: blur(18px);
+}
+.native-bottom-nav button {
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #777b84;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 48px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.native-bottom-nav button .native-nav-icon {
+  font-size: 19px;
+  line-height: 1;
+}
+.native-bottom-nav button[aria-current="page"] {
+  color: #111216;
+  background: #f0f0f2;
+}
+.native-bottom-nav button .native-nav-count {
+  display: inline-flex;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #111216;
+  color: white;
+  font-size: 10px;
+  margin-left: 3px;
+}
+body.native-app input,
+body.native-app select,
+body.native-app textarea,
+body.native-app button { font-size: max(16px, 1em); }
+body.native-app .product { scroll-margin-top: 16px; }
+body.native-app .quote { scroll-margin-top: 18px; }
+body.native-app .product-image-modal { z-index: 11000; }
+@media (min-width: 760px) {
+  .native-bottom-nav { max-width: 520px; left: 50%; right: auto; width: calc(100% - 28px); transform: translateX(-50%); border: 1px solid rgba(20,20,24,.1); border-bottom: 0; border-radius: 17px 17px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
